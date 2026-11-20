@@ -1,0 +1,36 @@
+name: Tricity approved Ferrari2k exact4 delta publish
+'on':
+  workflow_dispatch: {}
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+    - uses: actions/checkout@v4
+    - name: Verify reviewed delta then overlay only four files
+      run: "python3 - <<'PY'\nfrom pathlib import Path\nimport zipfile,hashlib\np=next(Path('.').glob('*tc-ferrari2k-delta-14d4a44c.zip'))\n\
+        assert hashlib.sha256(p.read_bytes()).hexdigest()=='fe1ab7642a62fa0e9d376739c6eace2adabb1020c63a345d2672a1002eaaf1d4'\n\
+        expected={'assets/ferrari2k.glb': 'fedbdf0382fad9813f7f732142b67d0b433fcf70b00aff506825c244776ebfc0',\
+        \ 'assets/models/CREDITS.md': 'f7ca8f5006f18e54d00d905e02f7151aa89ed6c872cfc7587c5552997bac0954',\
+        \ 'src/car_gltf.js': '6ce7b9f2b779f9fa61f8a0de2b0fa32860e2293a09d1f9458f2c17f25f0efb51',\
+        \ 'src/main.js': '22a6c1c4b95b0ca8bc149e9c39ef92890ecb37ecd4ba4828182bf65953a50d8c'}\n\
+        with zipfile.ZipFile(p)as z:\n assert {n for n in z.namelist()if not n.endswith('/')}==set(expected)\n\
+        \ for n,d in expected.items():\n  b=z.read(n);assert hashlib.sha256(b).hexdigest()==d;Path(n).parent.mkdir(parents=True,exist_ok=True);Path(n).write_bytes(b)\n\
+        for n,d in expected.items():assert hashlib.sha256(Path(n).read_bytes()).hexdigest()==d\n\
+        print('FOUR_APPROVED_FILES_EXACT',expected)\nPY\n"
+    - name: Commit exact approved update
+      run: 'git config user.name github-actions[bot]
+
+        git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+
+        git add src/car_gltf.js src/main.js assets/ferrari2k.glb assets/models/CREDITS.md
+
+        git commit -m "Apply approved Ferrari textured exterior and preserved cockpit"
+
+        git push origin HEAD:main
+
+        git rev-parse HEAD
+
+        '
