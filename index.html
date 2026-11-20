@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tricity Drive — Chandigarh</title>
+<link rel="icon" href="data:,">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#000; font-family:'Segoe UI',system-ui,-apple-system,sans-serif; }
+  #app { position:fixed; inset:0; }
+  canvas { display:block; }
+  .vignette { position:fixed; inset:0; pointer-events:none; z-index:5;
+    background:radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.42) 100%); }
+
+  /* ---------- Loading ---------- */
+  #loading { position:fixed; inset:0; z-index:100; background:#0a0c12; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; color:#fff; transition:opacity .6s; }
+  #loading .title { font-size:clamp(28px,6vw,54px); font-weight:800; letter-spacing:4px; }
+  #loading .title span { color:#ffc72c; }
+  #loading .sub { color:#8892a6; margin-top:6px; letter-spacing:2px; font-size:clamp(11px,2vw,14px); }
+  #loadbar { width:min(320px,70vw); height:4px; background:#22293a; border-radius:2px; margin-top:28px; overflow:hidden; }
+  #loadbar div { height:100%; width:0%; background:#ffc72c; border-radius:2px; transition:width .2s; }
+  #loadmsg { color:#5a6579; font-size:12px; margin-top:10px; letter-spacing:1px; }
+
+  /* ---------- Menu ---------- */
+  #menu { position:fixed; inset:0; z-index:90; display:none; flex-direction:column; align-items:center;
+    justify-content:center; color:#fff; background:linear-gradient(180deg, rgba(4,6,12,.25) 0%, rgba(4,6,12,.78) 100%); }
+  #menu .title { font-size:clamp(34px,7vw,64px); font-weight:800; letter-spacing:5px; text-shadow:0 4px 24px rgba(0,0,0,.7); }
+  #menu .title span { color:#ffc72c; }
+  #menu .sub { color:#c7cede; margin:4px 0 26px; letter-spacing:3px; font-size:clamp(11px,2vw,15px); }
+  .cards { display:flex; gap:18px; flex-wrap:wrap; justify-content:center; padding:0 16px; }
+  .card { width:min(280px,84vw); border:1px solid rgba(255,255,255,.16); border-radius:14px; overflow:hidden;
+    background:rgba(10,14,22,.72); backdrop-filter:blur(6px); cursor:pointer; transition:transform .18s, border-color .18s; }
+  .card:hover { transform:translateY(-4px) scale(1.02); border-color:#ffc72c; }
+  .card .thumb { height:120px; background-size:cover; background-position:center; }
+  .card .body { padding:12px 14px 14px; }
+  .card h3 { font-size:17px; letter-spacing:1px; }
+  .card p { color:#9aa5bb; font-size:12px; margin-top:4px; line-height:1.45; }
+  .card .tag { display:inline-block; margin-top:8px; font-size:10px; letter-spacing:1px; color:#ffc72c;
+    border:1px solid rgba(255,199,44,.5); padding:2px 8px; border-radius:20px; }
+  #menu .controls-hint { margin-top:26px; color:#77839c; font-size:12px; letter-spacing:1px; text-align:center; line-height:1.9; }
+  kbd { background:#1a2130; border:1px solid #3a4560; border-bottom-width:2px; border-radius:5px; padding:1px 7px;
+    font-size:11px; color:#dfe6f5; font-family:inherit; }
+
+  /* ---------- HUD ---------- */
+  #hud { position:fixed; inset:0; z-index:10; pointer-events:none; display:none; color:#fff; }
+  #speedo { position:absolute; right:22px; bottom:20px; text-align:right; text-shadow:0 2px 10px rgba(0,0,0,.8); }
+  #speedo .kmh { font-size:clamp(38px,7vw,58px); font-weight:800; line-height:1; font-variant-numeric:tabular-nums; }
+  #speedo .unit { font-size:12px; letter-spacing:3px; color:#ffc72c; }
+  #gear { position:absolute; right:24px; bottom:calc(20px + clamp(58px,10vw,80px)); font-size:15px; font-weight:700;
+    color:#0d1117; background:#ffc72c; border-radius:6px; padding:1px 9px; letter-spacing:1px; }
+  #objective { position:absolute; top:16px; left:50%; transform:translateX(-50%); text-align:center;
+    background:rgba(8,10,16,.55); border:1px solid rgba(255,255,255,.12); padding:8px 18px; border-radius:10px;
+    backdrop-filter:blur(4px); max-width:88vw; }
+  #objective .t { font-size:14px; font-weight:700; letter-spacing:1px; }
+  #objective .d { font-size:11.5px; color:#aab4ca; margin-top:2px; }
+  #minimap { position:absolute; left:18px; bottom:18px; width:150px; height:150px; border-radius:50%;
+    border:2px solid rgba(255,255,255,.25); box-shadow:0 4px 18px rgba(0,0,0,.5); background:#0a0e16; }
+  #toast { position:absolute; top:22%; left:50%; transform:translateX(-50%); font-size:clamp(18px,4vw,28px);
+    font-weight:800; letter-spacing:2px; color:#ffc72c; text-shadow:0 2px 14px rgba(0,0,0,.9); opacity:0;
+    transition:opacity .25s; white-space:nowrap; }
+  #timetrial { position:absolute; top:16px; right:18px; text-align:right; display:none; text-shadow:0 2px 8px rgba(0,0,0,.8); }
+  #timetrial .time { font-size:30px; font-weight:800; font-variant-numeric:tabular-nums; }
+  #timetrial .best { font-size:11px; color:#9aa5bb; letter-spacing:1px; }
+
+  /* top-left buttons */
+  #topbtns { position:absolute; top:14px; left:16px; display:flex; gap:8px; pointer-events:auto; }
+  .hbtn { background:rgba(8,10,16,.6); border:1px solid rgba(255,255,255,.18); color:#dfe6f5; border-radius:9px;
+    padding:7px 12px; font-size:12px; letter-spacing:1px; cursor:pointer; backdrop-filter:blur(4px); }
+  .hbtn:hover { border-color:#ffc72c; color:#ffc72c; }
+
+  /* ---------- Touch controls ---------- */
+  #touch { position:fixed; inset:0; z-index:20; pointer-events:none; display:none; }
+  .tzone { position:absolute; bottom:0; top:0; pointer-events:auto; }
+  #steerL { left:0; width:25%; } #steerR { left:25%; width:25%; }
+  #pedalB { right:0; width:24%; } #pedalG { right:24%; width:24%; }
+  .tlabel { position:absolute; bottom:86px; font-size:44px; color:rgba(255,255,255,.30); font-weight:800; user-select:none; }
+  #steerL .tlabel { left:26px; } #steerR .tlabel { right:26px; }
+  #pedalG .tlabel { left:30%; font-size:15px; bottom:110px; color:rgba(120,255,150,.45); letter-spacing:1px; }
+  #pedalB .tlabel { right:30%; font-size:15px; bottom:110px; color:rgba(255,120,120,.45); letter-spacing:1px; }
+  #textra { position:absolute; right:14px; bottom:170px; display:flex; flex-direction:column; gap:10px; pointer-events:auto; }
+  #textra .hbtn { font-size:14px; padding:10px 14px; }
+
+  #paused { position:fixed; inset:0; z-index:80; display:none; align-items:center; justify-content:center;
+    background:rgba(4,6,12,.72); color:#fff; flex-direction:column; gap:14px; backdrop-filter:blur(5px); }
+  #paused h2 { letter-spacing:4px; font-size:30px; }
+  #paused .row { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
+  #paused .hbtn { font-size:14px; padding:10px 20px; pointer-events:auto; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="vignette"></div>
+
+<div id="loading">
+  <div class="title">TRICITY <span>DRIVE</span></div>
+  <div class="sub">CHANDIGARH &bull; MOHALI &bull; PANCHKULA</div>
+  <div id="loadbar"><div></div></div>
+  <div id="loadmsg">starting engine…</div>
+</div>
+
+<div id="menu">
+  <div class="title">TRICITY <span>DRIVE</span></div>
+  <div class="sub">CHANDIGARH &bull; MOHALI &bull; PANCHKULA</div>
+  <div class="cards">
+    <div class="card" id="card-city">
+      <div class="thumb" id="thumb-city" style="background:linear-gradient(180deg,#1d1440 0%,#a04a52 55%,#e87a3d 100%)"></div>
+      <div class="body">
+        <h3>Sector 17 City</h3>
+        <p>Downtown Chandigarh at golden hour. Grid roads, roundabouts, plaza, traffic.</p>
+        <span class="tag">FREE ROAM + TIME TRIAL</span>
+      </div>
+    </div>
+    <div class="card" id="card-lake">
+      <div class="thumb" id="thumb-lake" style="background:linear-gradient(180deg,#7ab0d8 0%,#bdd7ee 55%,#3a6a4a 100%)"></div>
+      <div class="body">
+        <h3>Sukhna Lake Drive</h3>
+        <p>Lakeside road at sunset. Water, Shivalik hills, twisty promenade.</p>
+        <span class="tag">FREE ROAM + TIME TRIAL</span>
+      </div>
+    </div>
+  </div>
+  <div class="controls-hint">
+    <kbd>W A S D</kbd> drive &nbsp; <kbd>Space</kbd> handbrake &nbsp; <kbd>C</kbd> camera &nbsp; <kbd>D</kbd> door &nbsp; <kbd>M</kbd> sound &nbsp; <kbd>Esc</kbd> pause<br>
+    phone: left half = steer, right half = pedals
+  </div>
+</div>
+
+<div id="hud">
+  <div id="topbtns">
+    <button class="hbtn" id="btn-pause">❚❚</button>
+    <button class="hbtn" id="btn-cam">CAM</button>
+    <button class="hbtn" id="btn-door">DOOR</button>
+    <button class="hbtn" id="btn-sound">♪</button>
+  </div>
+  <div id="objective"><div class="t"></div><div class="d"></div></div>
+  <div id="timetrial"><div class="time">0:00.0</div><div class="best"></div></div>
+  <div id="speedo"><div class="kmh">0</div><div class="unit">KM/H</div></div>
+  <div id="gear">D</div>
+  <canvas id="minimap" width="300" height="300"></canvas>
+  <div id="toast"></div>
+</div>
+
+<div id="touch">
+  <div class="tzone" id="steerL"><div class="tlabel">◀</div></div>
+  <div class="tzone" id="steerR"><div class="tlabel">▶</div></div>
+  <div class="tzone" id="pedalG"><div class="tlabel">GAS</div></div>
+  <div class="tzone" id="pedalB"><div class="tlabel">BRAKE</div></div>
+  <div id="textra">
+    <button class="hbtn" id="btn-hb">HB</button>
+  </div>
+</div>
+
+<div id="paused">
+  <h2>PAUSED</h2>
+  <div class="row">
+    <button class="hbtn" id="btn-resume">RESUME</button>
+    <button class="hbtn" id="btn-restart">RESTART</button>
+    <button class="hbtn" id="btn-tomenu">CHANGE MAP</button>
+    <button class="hbtn" id="btn-quality">QUALITY: HIGH</button>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "./vendor/three.module.js",
+  "three/addons/loaders/GLTFLoader.js": "./vendor/GLTFLoader.js",
+  "three/addons/loaders/DRACOLoader.js": "./vendor/DRACOLoader.js",
+  "three/addons/loaders/RGBELoader.js": "./vendor/RGBELoader.js",
+  "three/addons/objects/Reflector.js": "./vendor/Reflector.js",
+  "three/addons/utils/SkeletonUtils.js": "./vendor/SkeletonUtils.js"
+} }
+</script>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
