@@ -150,6 +150,13 @@ const camPos = new THREE.Vector3(), camLook = new THREE.Vector3();
 function updateCamera(dt) {
   const p = G.player;
   const f = p.forwardDir();
+  // dual-model: textured exterior in chase/orbit, detailed interior in cockpit
+  const E = p.usingExternalMesh && p.external;
+  if (E && E.exterior) {
+    const inCockpit = G.camMode === 'cockpit';
+    E.exterior.visible = !inCockpit;
+    E.interiorModel.visible = inCockpit;
+  }
   if (G.camMode !== 'cockpit' && G.camera.fov !== 68) { G.camera.fov = 68; G.camera.updateProjectionMatrix(); }
   if (G.camMode === 'chase') {
     const dist = 7.6, height = 2.45;
@@ -352,12 +359,19 @@ function loop(now) {
 }
 
 function tick(dt) {
+  const pr = G.prof;
+  let t0 = pr ? performance.now() : 0;
+  const mark = (k) => { if (pr) { pr[k] = (pr[k] || 0) + performance.now() - t0; t0 = performance.now(); } };
   const inp = pollInput(dt);
   G.player._braking = inp.brake > 0;
   G.player.update(dt, inp, G.world);
+  mark('player');
   G.traffic.update(dt, G.player.pos);
+  mark('traffic');
   if (G.people) G.people.update(dt);
+  mark('people');
   if (G.tesla) G.tesla.update(dt, G.player.pos);
+  mark('tesla');
   G.speedKmh = G.player.speed * 3.6;
 
   updateCamera(dt);
@@ -372,7 +386,10 @@ function tick(dt) {
       G.player.pos.z + (G.map === 'city' ? 120 : 60));
   }
 
+  mark('pre');
   G.renderer.render(G.scene, G.camera);
+  mark('render');
+  if (pr) pr.n = (pr.n || 0) + 1;
 }
 
 boot();
@@ -386,6 +403,7 @@ window.TD = {
     tris: G.renderer?.info.render.triangles,
   }),
   start: async (map) => { await enterMap(map || 'city'); },
+  play: () => { G.playing = true; },
   cam: (m) => { G.camMode = m; },
   drive: (on) => { debug.gas = !!on; },
   steer: (v) => { debug.steer = v; },

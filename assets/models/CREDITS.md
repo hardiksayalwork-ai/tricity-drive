@@ -11,3 +11,14 @@ pmndrs/market-assets (github.com/pmndrs/market-assets) — all CC0:
   vehicles (sedan, hatchback, suv, taxi, police-car, delivery-truck), houses (house-*, house1, tower, library-large, barn), bench
 - More Realistic Trees Free! (pack, split into single trees) — CC Attribution — uid b5b506fc4f5d4af9b546283bdf0c6a15
 - Tesla 2018 Model 3 — CC Attribution — uid 5ef9b845aaf44203b6d04e2c677e444f
+
+## ferrari2k.glb (player car exterior)
+- "2013 Ferrari 458 Spider" by Ddiaz
+- Source: https://sketchfab.com/3d-models/2013-ferrari-458-spider-d12eab5e5c6d421da468e1c348a860a6
+- License: CC-BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+- Modifications: body paint recolored yellow -> red (baseColorFactor), wheel meshes split into 4 independent pivots at runtime, 2K textures.
+- Used as the chase/orbit exterior; cockpit view keeps the original three.js interior model.
+
+## ferrari.glb (player car interior)
+- Ferrari 458 Italia from the three.js examples (webgl_materials_video / FBX2glTF conversion)
+- License: three.js example asset (MIT, no embedded textures)
