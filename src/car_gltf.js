@@ -47,7 +47,7 @@ export async function loadPlayerFerrari({ paint = 0xc01818, envMap = null } = {}
 
   // forward = -Z for our physics convention
   const inner = model;
-  inner.rotation.y = -Math.PI / 2;
+  inner.rotation.y = 0;
   const g = new THREE.Group();
   g.add(inner);
 
@@ -79,7 +79,7 @@ export async function loadPlayerFerrari({ paint = 0xc01818, envMap = null } = {}
     brakeMat,
     headlights: [spotL, spotR],
     dome,
-    cockpit: { lx: -0.22, ly: 1.12, lz: -0.10 },
+    cockpit: { lx: 0.22, ly: 1.12, lz: -0.10 },
     wheelsRadius: 0.36,
     doorMeshes: null,     // model has no separate doors
   };
