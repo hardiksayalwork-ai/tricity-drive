@@ -1,0 +1,119 @@
+name: Publish exact approved driving game tree
+'on':
+  workflow_dispatch: {}
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v4
+    - name: Verify all original hashes and publish site root
+      run: "python3 - <<'EXTRACT'\nimport pathlib,zipfile,hashlib,json,shutil\nexpected=json.loads('{\"\
+        index.html\":\"51b978c463f5e4c2d3a7226fa64f0492a7d415f50f6bef745331d998f09c36cd\",\"download-assets.sh\"\
+        :\"fe7bee6b65aa80eda33b214c963bb547632e7ebd8130fa683acc6e68f9d9af95\",\"assets/ferrari.glb\":\"\
+        cafe3f48da6797aa9bde75ca768bc5b57db366575fd233e90df186ae988a876e\",\"assets/fac/Facade003_NormalGL.jpg\"\
+        :\"1ac56b097fef1a042610914f3a319bdc28f93bd523b01239bccb746faf172000\",\"assets/fac/Facade013_NormalGL.jpg\"\
+        :\"f29deabe81c6d26d3dd0e122577471fd7a9844b7d90da4d52f9ce637878a34a7\",\"assets/fac/Facade013_Color.jpg\"\
+        :\"9dc7cca059c4f23a41512454cb3b81295a0a56317afb97f7d0422ebdf0ba8f01\",\"assets/fac/Facade017_Roughness.jpg\"\
+        :\"5fb902e5272f58717699d9b0b0daf8908b5ffd80bc0e5c9e8200cc63ba994d19\",\"assets/fac/Facade004_Emission.jpg\"\
+        :\"91be7fde2643405bcf1526b79d01ecf46db73c44d50f4c023c1871bd25324c70\",\"assets/fac/Facade013_Emission.jpg\"\
+        :\"d9bd096453b807eb359b99547b6c4c98c3791d09094e276f8d83f152473dc39f\",\"assets/fac/Facade004_NormalGL.jpg\"\
+        :\"1ac56b097fef1a042610914f3a319bdc28f93bd523b01239bccb746faf172000\",\"assets/fac/Facade003_Roughness.jpg\"\
+        :\"1bc7ae78aec982f296b470a697d340494e6a9575832a42915a3043c0cc2de9dd\",\"assets/fac/Facade006_Roughness.jpg\"\
+        :\"d442198a13462a152b8c24efa70302df8297a91936d58ea6c8d50eb31c23e0ec\",\"assets/fac/Facade002_Roughness.jpg\"\
+        :\"1bc7ae78aec982f296b470a697d340494e6a9575832a42915a3043c0cc2de9dd\",\"assets/fac/Facade017_NormalGL.jpg\"\
+        :\"aee2d417f1cd1929be99c9464283b413f168b8968c89a9cd6bccc0d45fabcacd\",\"assets/fac/Facade002_Color.jpg\"\
+        :\"cdb18fd94946792dbb8051c4e5ae147c8789d83133bf83558a33ed8f496e5f01\",\"assets/fac/Facade002_Emission.jpg\"\
+        :\"c15aa2f13395f71b7625e99849158147e11c2e1c56a398f38f0dc60c152e9a2f\",\"assets/fac/Facade003_Emission.jpg\"\
+        :\"50e15ab63b4a5d841787ecdfbd232087c75210a2876d652c30d8eef6ea637119\",\"assets/fac/Facade002_NormalGL.jpg\"\
+        :\"1ac56b097fef1a042610914f3a319bdc28f93bd523b01239bccb746faf172000\",\"assets/fac/Facade017_Emission.jpg\"\
+        :\"1c209d3a171406f68c453fb2a4c0de14086484edb7c6d1c164c89999cbb60fe0\",\"assets/fac/Facade004_Color.jpg\"\
+        :\"5e9dd6d45d333be1321084f72fb56598dd325bd11ab6ba08ced26b223439c434\",\"assets/fac/Facade003_Color.jpg\"\
+        :\"89e8735f9b877008d2143f19b5381fcd3ad0e54576c6a2c55298afbd75338f2e\",\"assets/fac/Facade006_Color.jpg\"\
+        :\"a170d5d73cd4977fefa276bb85d2a14147db0abe6022dd13afddb09f1abc3c00\",\"assets/fac/Facade017_Color.jpg\"\
+        :\"112bcfd164d7f24eb49902732cdd58b2c163d59bec60a30d37cc710dae5ba6ea\",\"assets/fac/Facade013_Roughness.jpg\"\
+        :\"f87d40f1e7e84b0757332ca0af927b8aa16962dad4308fc0816aadc17ff35781\",\"assets/fac/Facade006_NormalGL.jpg\"\
+        :\"0bce7a368d6a6e590af3550762a9e088202744f3efe47fee1b15b4ef98fad0e3\",\"assets/fac/Facade004_Roughness.jpg\"\
+        :\"50b7a687bc1b52f34c49018120b720d866e2eb1f2c5f26717a5d435381d299f9\",\"assets/tex/rock_nrm.jpg\"\
+        :\"8fd1d22eb6c7b6e4a374196c0de791f724538b8b86eb9c7a946fec1f5834cb94\",\"assets/tex/rock_rgh.jpg\"\
+        :\"f37850f72994458994716d084683d80611528d1685264bde3071569e8ca53489\",\"assets/tex/grass_nrm.jpg\"\
+        :\"eef0b56db5f00a6fcb3d0e0f8463e4e141e88aa85b26527a04d617b75a4ab5d2\",\"assets/tex/concrete_rgh.jpg\"\
+        :\"a4a9e39857a19afd23a778e5abf44fcdf6bd7f93918f1cf6878b41933e553511\",\"assets/tex/rock_alb.jpg\"\
+        :\"1dca8a336518ce0adca4b5cbe2ab30819c8769388f1c15278082a99f022c615a\",\"assets/tex/asphalt_alb.jpg\"\
+        :\"e0ab82cf2663288c0355734de2e1797bb1a4c43c2d2f86545c43a0815e3e64f2\",\"assets/tex/grass_alb.jpg\"\
+        :\"b9b6d61bc3b6137b868a3447eef18737896acd26d58fe2f4b83ce8c0e9d3f8ad\",\"assets/tex/concrete_alb.jpg\"\
+        :\"8ceb9186d990b31fce785e06fdc6974c160f1d27c43f6160266f164deba713aa\",\"assets/tex/asphalt_nrm.jpg\"\
+        :\"df09e913ba77ab276498ef2130d2d5ea051265d30534ab1101c9ad7d7775d6d2\",\"assets/tex/concrete_nrm.jpg\"\
+        :\"e509eb9dfa978e780fbebfd2acacc2ce158b5b7ced722ddc0759039dd51e18ca\",\"assets/tex/asphalt_rgh.jpg\"\
+        :\"2103563d7c18ca119e028f4b1577c5279155358e804163d1b40af18827c12bf5\",\"assets/tex/paving_rgh.jpg\"\
+        :\"1a974eeeb2419985da74ae53b0ae1706d7ad0220ab52cee2e2ae00f1f32affc7\",\"assets/tex/paving_alb.jpg\"\
+        :\"4dd55b7eaf648810c88f3c3ea96028bb9c99b3c448b3800416f9f2af1a84a57d\",\"assets/tex/grass_rgh.jpg\"\
+        :\"8810effd44756341170d551501b7d0c645dc2395dbce46a8c7f1e61045258a06\",\"assets/tex/paving_nrm.jpg\"\
+        :\"7ee144389951d74b5f8bf0a31d712382b662bf161c29644392465d069ff57912\",\"assets/models/taxi.gltf\"\
+        :\"103aad9efef741362ab40e3c095fb492960bd4862b80cd7f53b01dfd52e39a10\",\"assets/models/skater-male.gltf\"\
+        :\"7bf4ba6916e00fc8ba8c04b181fd12223d71cf80b2199144ba8a081aca7f43ec\",\"assets/models/tree-small.gltf\"\
+        :\"249a17d0bfbe62375019d46e99fa17cb40a4e3c00d3cbabc630892603fc4abc4\",\"assets/models/sedan.gltf\"\
+        :\"20f892dfddc8e0ab2940dc8b3772681fcba8e168dd5fec57ed5d1594749e3c63\",\"assets/models/house1.gltf\"\
+        :\"a165d0cd560d62155486c7ceecd7ec50e517b1fcbfaf742694f9ab6aba8b0406\",\"assets/models/skater-female.gltf\"\
+        :\"77d1f30e1a4125b02077c9e54085a6b0b79f132e93a524dcf4732d5bf0f10b42\",\"assets/models/library-large.gltf\"\
+        :\"51fd3fe81a62d008a7fb829afbfcb4d11df202b32fa1bece49c22993ebc87028\",\"assets/models/tesla_model3.glb\"\
+        :\"561df3058344c525c7d1dabac717e65a9a2fc16b9bb20071bd35adf4649ec11f\",\"assets/models/barn.gltf\"\
+        :\"806032c88e7fb2b27e9c9b3ba7ec9c670b5faadb83310b735d4bacc3ea5df64e\",\"assets/models/tree_c.glb\"\
+        :\"2670f4a70aa91f7243cce2884d567fed37f70af082ae1eab3beedbc7cab2ea73\",\"assets/models/bench.gltf\"\
+        :\"14ea0a580cd49a516dceeda0b6f9f352b498c98ee9c3ace1549a63b593526980\",\"assets/models/house-18.gltf\"\
+        :\"2ce7811948cc14a63c7c1e0214139981a5cf1516e794eeeee0a49ffb657dc74e\",\"assets/models/palm-detailed-short.gltf\"\
+        :\"2ac47221620552071549d6b15e51be93fc1d6709873ffbfde19909dfeb20e5e3\",\"assets/models/nathan_walking.glb\"\
+        :\"f8672d974b21fb2fe22c81341f5f003fb586b3e8165370e2daa7eeffbf09a87e\",\"assets/models/house-6.gltf\"\
+        :\"c0b1a93b58206eab77c53404ee07f38f6b1b4b7d370d63ad32266764ef1e184b\",\"assets/models/tree_b.glb\"\
+        :\"05b8bb249bfe4b274308969da4ee0737f46bcf15574ef43f2883adbab71074c8\",\"assets/models/male.gltf\"\
+        :\"b48c2a139b82378eacb98ee699d63eb2eb4da6d28d0a619e059dd6c5abaab2f6\",\"assets/models/house-5.gltf\"\
+        :\"b1a434df240e88ea50d3a76e01ca69dc13e23025dcb60bc03d8a04bb2b102b48\",\"assets/models/tree_d.glb\"\
+        :\"90f982680385531daf95d008f9535e7d2e8e5d624789beb02e3721733a747e71\",\"assets/models/tower.gltf\"\
+        :\"57bea0b9558f14e8e6317a40b344952a863443f96ff4fa229fd83ffa70dfd76a\",\"assets/models/city_pack_7.glb\"\
+        :\"9eeea1daa1f7e51120b75325ea05610ed7d5512af7d7efc73673a5a3f2ce6c9a\",\"assets/models/tree_a.glb\"\
+        :\"02c64e81655b582dfc72959e330358c9ac8f22babd05812f3b887f71c195c464\",\"assets/models/CREDITS.md\"\
+        :\"e99a8dda0fb506e12680d8e3255b04f8b08666bb062ebd4ae59f985bd6e1c784\",\"assets/models/tree-big.gltf\"\
+        :\"449fca266bfa6612502031c57f511b56513e169bf8a8fd2ed54d152bf7454aa2\",\"assets/models/house-3.gltf\"\
+        :\"b259211759cb9a287c4be574fdbc4508de58568ff08d9f10287b083810d019d3\",\"assets/models/hatchback.gltf\"\
+        :\"81d239fa4365b0e2deaf6122daf46567795abf845a5bed1d077552e9aecebb0d\",\"assets/models/survivor-male.gltf\"\
+        :\"5288c08f5e05a62d8fcbe0457881f0435be8ec8e489831c35af1560a6206be11\",\"assets/models/nyc_dwellings.glb\"\
+        :\"95e3811fd999392422dd479ba3652a6a93077ca592af35069c8e18e1bef0510e\",\"assets/models/buildings_front.glb\"\
+        :\"61e55f3be74cc3e2e7ea9c5a976051d62e53bbba4bdbdc063989f2f6abee247d\",\"assets/models/delivery-truck.gltf\"\
+        :\"f14b43e56073e0fb6696273f867b3c309c08a1432eaf2c06ca8bbcfa8662091c\",\"assets/models/palm-detailed-long.gltf\"\
+        :\"e128dd2f64f7d5c85ecaaf1913347cac29304e5ee6a1abcfb0953cccbfb35758\",\"assets/models/house-7.gltf\"\
+        :\"7b59ba1f005e33a2674558fda17fed621de494552a55057ab837fd9cc668aee7\",\"assets/models/police-car.gltf\"\
+        :\"33f7ce17931e81a03d9b58df16b06ae83d1e847d18ecb9475efe2d59ba8adcc7\",\"assets/models/suv.gltf\"\
+        :\"8465bc7d0d7c9861b02cea201042d182901e6abc1864f6cdef7ee83649a27b86\",\"assets/models/house-4.gltf\"\
+        :\"2a9760aa3fc7f3f6af2963097cf657f109129c074a7a11d0ae8664abf3eef747\",\"assets/env/sunset.hdr\"\
+        :\"27504c5dd20ffc8490537b152860b80ec9c2bf2832ab28ebd2b6e9f475627411\",\"assets/env/day.hdr\":\"\
+        04d23c6b243742b5046310b29211aec671d7a0570f3596e1a6b43e614c9acadf\",\"utils/BufferGeometryUtils.js\"\
+        :\"c25b7930e570e9ec56173cd3b866ec8d2e10016630db3937efb439daf1cedbf6\",\"vendor/Reflector.js\"\
+        :\"012ecf98f5fc9bd262871e33d79392a25c04c2573ed68852eb3b8d2d39f9808b\",\"vendor/three.module.js\"\
+        :\"0a3368c165eea773490aec7b77c22de70e3eac288503409256fdbf4d12578416\",\"vendor/DRACOLoader.js\"\
+        :\"8a90b39b6c0d7faa70410cdd19348029a83a9f2d5f71e11b665a5f48330a4c72\",\"vendor/SkeletonUtils.js\"\
+        :\"ee412be1aa05f3051c2bda8ea89612c1ba70c5c87de62b56040282120d5eb991\",\"vendor/RGBELoader.js\"\
+        :\"f0e87d0008d9484d31358b32befd1bf80e4301f77573cc9a7cf7d871cc3f64b4\",\"vendor/GLTFLoader.js\"\
+        :\"6f1719dcc6a179d30273dfb0de07a8c898a7981f7b08e600b446387f5967371f\",\"vendor/draco/draco_decoder.wasm\"\
+        :\"a680d927bed9cb864ddbd63521868891af2bfbe755092761b4837487618df8ac\",\"vendor/draco/draco_decoder.js\"\
+        :\"8625489da79a805f4f2a7d511c3e52d8b4085608a9d2a4d5f4f9de5db0aea04f\",\"vendor/draco/draco_wasm_wrapper.js\"\
+        :\"8bb2952d2ba7d67e1414f8df819410cb0434a666be53f671fff75f68843d76f6\",\"src/world.js\":\"bcde6f576fcb09a77ebc2111a41c1e8bbc8d9a67441d41144cccd8914df0f38e\"\
+        ,\"src/input.js\":\"28c6bb2efcba5da988537f903f757cc999cd25b7fea5443b1f8fe863b1dafa01\",\"src/textures.js\"\
+        :\"b243b35f36769448848a0c8a2e222446049fb8063077ec220989ca174ddf3f0e\",\"src/traffic.js\":\"ab13a79b0e5b8cd1bc6d3d1e363200543a3886954bbaf53b738ed53d63a609f5\"\
+        ,\"src/map_lake.js\":\"a6e6ecc280192ad13aa2f5d4199528aa0fd73613b855fc0ddc53aa4e6f07ae69\",\"src/config.js\"\
+        :\"401e276f905f12863d612c4059dc2aa4bfc684286a86fbf4c5f9f7c99c4294fa\",\"src/audio.js\":\"5be8dc362c4d23744ed0e23569c8d9eb7f639c5389e86b1610d972984512aecd\"\
+        ,\"src/car.js\":\"96b3338a25baaaf84fbe475e53bd171f3ac067ef5ef5cb814ccbb2ebc9896c78\",\"src/people.js\"\
+        :\"986b1faa72b4be126d4bc2d4d55fbfb1a04146440b573c17db13c2f465f41bf1\",\"src/car_gltf.js\":\"0edd5568b120e5b5c5a368a7417495e48c167374616bd9b21630c6c182ec2c41\"\
+        ,\"src/map_city.js\":\"3cd209d12a15aec2968e3808737b83ca16de10e68f27e88379744e309e88a41e\",\"src/tesla.js\"\
+        :\"23b7e69766a9c9def7ed4a4f3daade92ecc9ca0cef0a97f8f649154cde30a4b3\",\"src/models.js\":\"d90821de4bf7396a1a5ea22d926a99479e04678aff1a8686bb6f8cde535e1657\"\
+        ,\"src/main.js\":\"23d07fb30af73aabf6389a41ff75d9852528dcacc0bfc89ee577571c4918ce0f\"}')\ndest=pathlib.Path('/tmp/site-extract');dest.mkdir()\n\
+        zips=list(pathlib.Path('.').glob('*tc-site-part*.zip'));assert len(zips)==7\nfor p in zips:\n\
+        \ with zipfile.ZipFile(p)as z:\n  for i in z.infolist():\n   q=pathlib.PurePosixPath(i.filename);assert\
+        \ not q.is_absolute()and'..'not in q.parts\n  z.extractall(dest)\ngame=dest/'game';actual={p.relative_to(game).as_posix():hashlib.sha256(p.read_bytes()).hexdigest()for\
+        \ p in game.rglob('*')if p.is_file()};assert actual==expected\nassert(game/'index.html').is_file()and(game/'assets/models/CREDITS.md').is_file()\n\
+        for p in game.iterdir():\n if p.is_dir():shutil.copytree(p,p.name,dirs_exist_ok=True)\n else:shutil.copy2(p,p.name)\n\
+        pathlib.Path('.nojekyll').touch()\nprint('SITE_EXACT_102_FILES_AND_ATTRIBUTION_VERIFIED',len(actual))\n\
+        EXTRACT\ngit config user.name 'hardiksayalwork-ai'\ngit config user.email 'hardiksayalwork-ai@users.noreply.github.com'\n\
+        git add index.html src vendor utils assets download-assets.sh .nojekyll\ngit commit -m 'Publish\
+        \ exact approved game tree with asset attribution'\ngit push origin HEAD:main\n"
